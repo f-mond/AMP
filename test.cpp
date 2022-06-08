@@ -36,7 +36,7 @@ class RDCSSDescriptor {
 
 class CASNDescriptor {
     public:
-    int status;
+    std::atomic<long int> status;
     int count; 
     struct entries {
         long int addr;
@@ -79,6 +79,13 @@ RDCSSDescriptor GetDescriptorRDCSS(void *p2) {
     return *(RDCSSDescriptor*)p3;
 }
 */
+
+CASNDescriptor* GetDescriptorCASN(void *p2) {
+    const uintptr_t MASK = ~0x03ULL;
+    intptr_t p3 = (uintptr_t)p2 & MASK;
+    return (CASNDescriptor*)p3;
+}
+
 long int CAS1(std::atomic<long int> &a, long int o, long int n) {
     long int old=a;
     std::cout << "doing CAS on value " << a << " with expected value " << o << " and new value " << n << std::endl;
@@ -121,22 +128,31 @@ long int RDCSS (RDCSSDescriptor *d) {
     std::cout << "finished RDCSS and have values a1 " << *d->a1 << " a2 " << *d->a2 << std::endl;
     return r;
 }
-/*
-int CASN(CASNDescriptor *cd){
+
+bool CASN(CASNDescriptor *cd){
 	if(cd->status == UNDECIDED){
 		int status = SUCCEEDED;
 		for(int i=0; (i<cd->count) && (status == SUCCEEDED); i++){
 			auto entry = cd->entry[i];
-			long int val = RDCSS(RDCSSDescriptor(cd->status, UNDECIDED, entry->addr, entry->old, SetTag(cd)));
+			RDCSSDescriptor temp = RDCSSDescriptor(cd->status, entry.addr, UNDECIDED, entry.oldVal, (long int)SetTag(cd));
+			long int val = RDCSS(&temp);
 			if(IsDescriptor((void*)val)==2){
-				if(
+				if(cd == GetDescriptorCASN((void*)val)){
+					CASN(GetDescriptorCASN((void*)val));
+					//goto
+				}
 			}
+			else if(val != entry.oldVal) status = FAILED;
 		}
+		//CAS1(*cd->status, UNDECIDED, status);
 	}
-
-
+	bool succeeded = (cd->status == SUCCEEDED);
+	for(int i=0; i<cd->count; i++){
+		CAS1(cd->entry[i].addr, (long int)SetTag(cd), succeeded?(cd->entry[i].newVal) : (cd->entry[i].oldVal));
+	}
+	return succeeded;
 }
-*/
+
 long int RDCSSRead(void *addr){
 	void *r;
 	do {
