@@ -32,7 +32,7 @@ class RDCSSDescriptor {
     const long int n2{4};
     
     //this is ugly as fuck, but for some reason *a1=7  is just not allowed
-    RDCSSDescriptor(long int _a1, long int _a2, long int _o1, long int _o2, long int _n2) : o1(_o1) , o2(_o2), n2(_n2), tmp1(_a1), tmp2(_a2), a1(&tmp1), a2(&tmp2){    }
+    RDCSSDescriptor(std::atomic<long int> *_a1, std::atomic<long int> *_a2, long int _o1, long int _o2, long int _n2) : o1(_o1) , o2(_o2), n2(_n2), a1(_a1), a2(_a2){    }
 };
 
 
@@ -150,11 +150,12 @@ bool CASN(CASNDescriptor *cd){
 		int status = SUCCEEDED;
 		std::cout << "started and set status to succeeded " << status << std::endl;
 		for(int i=0; (i<cd->count) && (status == SUCCEEDED); i++){
+			std::cout << "starting loop with i " << i << " count " << cd->count << " status " << status << std::endl;
 			auto entry = cd->entry[i];
 			std::cout << "chose first entry" << std::endl;
-			RDCSSDescriptor temp = RDCSSDescriptor(cd->status, *entry.addr, UNDECIDED, entry.oldVal, (long int)SetTag(cd));
+			RDCSSDescriptor temp = RDCSSDescriptor(&cd->status, entry.addr, UNDECIDED, entry.oldVal, (long int)SetTag(cd));
 			long int val = RDCSS(&temp);
-			std::cout << "value returned from RDCSS on first entry " << val << std::endl;
+			std::cout << "value returned from RDCSS on first entry " << val << " and address set to " << *entry.addr << std::endl;
 			if(IsDescriptor((void*)val)==2){
 				if(cd == GetDescriptorCASN((void*)val)){
 					std::cout << "found a descriptor and doing CASN on that one now" << std::endl;
@@ -166,14 +167,18 @@ bool CASN(CASNDescriptor *cd){
 				status = FAILED;
 				std::cout << "failed to assign values" << std::endl;
 			}
-			std::cout << "finished entry " << i << " of many, looping back" << std::endl << std::endl;
+			std::cout << "finished entry " << i << " of " << cd->count << ", having written value " << *cd->entry[i].addr << " to the entry" << std::endl << std::endl;
 		}
 		std::cout << "finished loop through entries, now assigning success status" << std::endl;
 		CAS1((cd->status), UNDECIDED, status);
 	}
 	bool succeeded = (cd->status == SUCCEEDED);
 	for(int i=0; i<cd->count; i++){
+		std::cout << "entry " << i << " has value " << *cd->entry[i].addr << std::endl;
+	}
+	for(int i=0; i<cd->count; i++){
 		CAS1(*(cd->entry[i].addr), (long int)SetTag(cd), succeeded?(cd->entry[i].newVal) : (cd->entry[i].oldVal));
+		std::cout << "writing value " << (succeeded?(cd->entry[i].newVal) : (cd->entry[i].oldVal)) << " to entry " << i << std::endl;
 	}
 	return succeeded;
 }
@@ -214,9 +219,10 @@ int main() {
     std::atomic<long int> ato{3};
     std::atomic<long int> ato2{4};
     entries entry = {&ato, 3, 5};
-    entries entry2 = {&ato, 4, 5};
+    entries entry2 = {&ato2, 4, 6};
     std::cout << "before execution we have ato1 " << ato << " ato2 " << ato2 << std::endl;
     std::vector<entries> ent{entry};
+    ent.push_back(entry2);
     CASNDescriptor casndesc(ent);
     std::cout << "starting CASN" << std::endl;
     bool ran = CASN(&casndesc);
