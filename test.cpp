@@ -242,7 +242,7 @@ int main() {
     std::cout << a << std::endl;
     */
     std::atomic<long int> ato{3},ato2{3},ato3{3}, ato4{3}, ato5{3}, ato6{3}, ato7{3}, ato8{3};
-	entries entry{&ato, 3, 5}, entry2{&ato2,3,5}, entry3{&ato3,3,5}, entry4{&ato4,3,5}, entry5{&ato5,3,5}, entry6{&ato6,3,5}, entry7{&ato7,3,3}, entry8{&ato8,3,3};
+	entries entry{&ato, 3, 5}, entry2{&ato2,3,5}, entry3{&ato3,3,5}, entry4{&ato4,3,5}, entry5{&ato5,3,5}, entry6{&ato6,3,5}, entry7{&ato7,3,4}, entry8{&ato8,3,3};
     omp_set_dynamic(0);
     omp_set_num_threads(2);
     std::vector<int> casn_runtime;
@@ -302,37 +302,10 @@ int main() {
 		cas_runtime.push_back(duration_base.count());
 	}
 	for(int i=0;i<cas_runtime.size();i++){
-		std::cout << "thread " << i << " runtime for CASN " << casn_runtime[i] << " runtime for N CAS " << cas_runtime[i] << std::endl;
+		std::cout << "thread " << i << " runtime for CASN " << casn_runtime[i] << " runtime for N CAS " << cas_runtime[i] << " ratio " << (double)casn_runtime[i]/cas_runtime[i] << std::endl;
 		}
-	/*
-    entries entry = {&ato3, 4, 5};
-    entries entry2 = {&ato4, 4, 5};
-    //std::vector<entries> ent{entry};
-    //CASNDescriptor desc(ent);
-    RDCSSDescriptor desc(&ato3, &ato4, 4, 4, 5);
-    std::cout << &desc << std::endl;
-    void* testing = &desc;
-	std::cout << IsDescriptor(SetTagCASN(testing)) << std::endl;
-	std::cout << IsDescriptor(SetTagRDCSS(testing)) << std::endl;
-	std::cout << IsDescriptor(testing) << std::endl;
-	std::cout << testing << std::endl;
-	std::cout << SetTagCASN(testing) << std::endl;
-	std::cout << SetTagRDCSS(testing) << std::endl;
-	std::cout << GetDescriptorCASN(testing) << std::endl;
-	std::cout << GetDescriptorCASN(SetTagCASN(testing)) << std::endl;
-	std::cout << GetDescriptorCASN(SetTagRDCSS(testing)) << std::endl;
-	std::cout << GetDescriptor(SetTagCASN(testing)) << std::endl;
-	std::cout << GetDescriptor(SetTagRDCSS(testing)) << std::endl;
-	
-    std::cout << IsDescriptor((void*)14) << std::endl;
-    std::cout << ((long int)testing > INT_MAX) << std::endl;
-    */
 
 	std::cout << "finished execution" << std::endl;
-	
-    //RDCSSDescriptor desc(7,4,7,4,1);
-    //long int temp;
-    //temp = RDCSS(&desc);
     
     return 0;
 }
