@@ -5,12 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include <omp.h>
-#include "casn2.cpp"
+#include "casn2.cpp" 
 
 int main() {
-    std::atomic<word_t> ato{5},ato2{3},ato3{3}, ato4{3}, ato5{3}, ato6{3}, ato7{3}, ato8{3};
-	CASN_entry entry1{&ato, 5, 6}, entry2{&ato2,3,6}, entry3{&ato3,3,6}, entry4{&ato4,3,6}, entry5{&ato5,3,6}, entry6{&ato6,3,6}, entry7{&ato7,3,4}, entry8{&ato8,3,3};
-	CASN_entry entry2_0{&ato, 6, 3}, entry2_2{&ato2, 6,3}, entry2_3{&ato3, 6,3}, entry2_4{&ato4, 6,3}, entry2_5{&ato5, 6,3}, entry2_6{&ato6, 6,3}, entry2_7{&ato7, 4,3}, entry2_8{&ato8, 3,3};
+    std::atomic<word_t> ato{4},ato2{4*3},ato3{3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3};
+	CASN_entry entry1{&ato, 4, 8}, entry2{&ato2,4*3,4*6}, entry3{&ato3,4*3,4*6}, entry4{&ato4,4*3,4*6}, entry5{&ato5,4*3,4*6}, entry6{&ato6,4*3,4*6}, entry7{&ato7,4*3,4*4}, entry8{&ato8,4*3,4*3};
+	CASN_entry entry2_0{&ato, 6, 3}, entry2_2{&ato2, 4*6,4*3}, entry2_3{&ato3, 4*6,4*3}, entry2_4{&ato4, 4*6,4*3}, entry2_5{&ato5, 4*6,4*3}, entry2_6{&ato6, 4*6,4*3}, entry2_7{&ato7, 4*4,4*3}, entry2_8{&ato8, 4*3,4*3};
     
     std::vector<int> casn_runtime;
     std::vector<int> cas_runtime;
@@ -18,19 +18,27 @@ int main() {
     std::vector<int> cas_throughput;
 
 
-    std::vector<CASN_entry> N_entries;
+/*    std::vector<CASN_entry> N_entries;
     N_entries.push_back(entry1);    
-   
- 
+	std::cout << ato << std::endl;
+	
+	CASN(N_entries);
+	//CASN_desc *d = new CASN_desc(UNDECIDED, N_entries);
+	//std::cout << std::hex << CAS1(*d->entry[0].addr, 6, 3) << std::endl;
+	std::cout << std::endl << ato << std::endl;
+
+
+*/
     omp_set_dynamic(0);
-    omp_set_num_threads(1);
-   
+    omp_set_num_threads(2);
+
+  
     #pragma omp parallel
     {
         int id = omp_get_thread_num();
-        std::atomic<word_t> ato9{4}, ato10{4};
-	    CASN_entry entry9{&ato9,4,6}, entry10{&ato10,4,6};
-	    CASN_entry entry2_9{&ato9, 6,4}, entry2_10{&ato10,6,4};
+        std::atomic<word_t> ato9{4*4}, ato10{4*4};
+	    CASN_entry entry9{&ato9,4*4,4*5}, entry10{&ato10,4*4,4*5};
+	    CASN_entry entry2_9{&ato9, 4*5,4*4}, entry2_10{&ato10,4*5,4*4};
 	    std::vector<CASN_entry> ent;
 	    std::vector<CASN_entry> ent2;
 	    std::vector<int> old_values;
@@ -89,15 +97,15 @@ int main() {
         
 		bool ran, ran2;
 
-		for(int i=0;i<10;i++){
+		for(int i=0;i<100;i++){
 			ran = CASN(ent);
 			
 			ran2 = CASN(ent2);
-			std::cout << ran << " " << ran2 << std::endl;
+			//std::cout << ran << " " << ran2 << std::endl;
 		}
 
     }
-    
+    std::cout << ato << std::endl;
 /**/
 	std::cout << std::endl << "finished execution" << std::endl;
     

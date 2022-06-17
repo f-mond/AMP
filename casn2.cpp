@@ -67,7 +67,7 @@ word_t* packCASN(CASN_desc *p1) {
 }
 
 RDCSS_desc *unpack(word_t *p1) {
-    std::cout << "unpackRDCSS";
+    //std::cout << "unpackRDCSS";
     const uintptr_t MASK = ~0x03ULL;
     intptr_t p2 = (uintptr_t)p1 & MASK;
     //std::cout << "unpack" << (uintptr_t)p1 << " " << (uintptr_t)p2 << std::endl;
@@ -82,26 +82,21 @@ CASN_desc *unpackCASN(word_t *p1) {
 }
 
 word_t CAS1(std::atomic<word_t> &a, word_t expected, word_t n) {
-    word_t old=(word_t) &a; 
+    word_t old=(word_t) a; 
     //if (old==o) *a=n;   
     a.compare_exchange_weak(expected, n);
 
     //std::cout << "CAS1 old:" << old << " exp:" << expected << " new:" << n <<  std::endl;
 
-    /*if(a.compare_exchange_weak(expected, n)) {
-        std::cout << "CAS1 succ " << std::endl;
-    } else {
-        std::cout << "CAS1 fail " << std::endl;
-    }*/
     return old;
 }
 
 word_t CAS1_(std::atomic<word_t> &a, word_t expected, word_t n) {
-    word_t old=(word_t) &a; 
+    word_t old=(word_t) a; 
     //if (old==o) *a=n;   
     a.compare_exchange_weak(expected, n);
 
-    std::cout << "CAS1 old:" << old << " exp:" << &expected << " new:" << n <<  std::endl;
+    std::cout << std::hex << "CAS1 old: " << old << " exp:" << expected << " new:" << n <<  std::endl;
 
     /*if(a.compare_exchange_weak(expected, n)) {
         std::cout << "CAS1 succ " << std::endl;
@@ -112,17 +107,19 @@ word_t CAS1_(std::atomic<word_t> &a, word_t expected, word_t n) {
 }
 
 void Complete(RDCSS_desc *d) {
-    //std::cout << "Complete";
-    if (*d->addr1 == d-> exp1) {
-        CAS1(*d->addr2, *pack(d), d->new2);
+    
+    if (*d->addr1 == d->exp1) {
+        //std::cout << "CompleteA " << d->new2 << std::endl;
+        CAS1(*d->addr2, (word_t) pack(d), d->new2);
     } else {
-        CAS1(*d->addr2, *pack(d), d->exp2);
+        //std::cout << "CompleteB";
+        CAS1(*d->addr2, (word_t) pack(d), d->exp2);
     }
 }
 
 bool isRDCSS(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
-    //std::cout << tag;
+    //std::cout << p1;
     return (tag==1);
 }
 
@@ -148,10 +145,11 @@ word_t RDCSS(std::atomic<word_t> *addr1, std::atomic<word_t> *addr2, word_t exp1
     RDCSS_desc *d=new RDCSS_desc(addr1, addr2, exp1, exp2, new2);
     word_t val2;
     while(true) {
-        val2=CAS1(*d->addr2, d->exp2, *pack(d));
-        //std::cout << "isRDCSS? " << val2 << std::endl;
+        //std::cout << *d->addr2 << " " << d->exp2 << " " << std::hex << (word_t) pack(d) << std::endl;
+        val2=CAS1(*d->addr2, d->exp2, (word_t) pack(d));
+        
         if (isRDCSS((word_t*) val2)) {
-            //std::cout << std::endl << "found RDCSS Descriptor" << val2 << std::endl;
+            //std::cout << std::endl << "found RDCSS Descriptor " << std::hex << val2 << std::endl;
             Complete(unpack((word_t*) val2));
         }
         else break;
@@ -169,12 +167,12 @@ bool CASN_(CASN_desc *d) {
         word_t stat=SUCCEEDED;
         for (int i=0; (i< d->n) && (stat==SUCCEEDED); i++) {
             
-            word_t val2=RDCSS(&d->status, d->entry[i].addr, UNDECIDED, d->entry[i].exp1, *packCASN(d));
+            word_t val2=RDCSS(&d->status, d->entry[i].addr, UNDECIDED, d->entry[i].exp1, (word_t) packCASN(d));
             
             if (val2 != d->entry[i].exp1) {
                 //std::cout << std::endl << " ! ";
-                if (isCASN((word_t *) val2)) {
-                    std::cout << std::endl << "found CASN Descriptor" << std::endl;
+                if (isCASN((word_t*)val2)) {
+                    //std::cout << std::endl << "found CASN Descriptor" << std::endl;
                     if(unpackCASN((word_t*)val2)!=d) {
                         CASN_(unpackCASN((word_t*)val2));
                         --i;
@@ -198,7 +196,7 @@ bool CASN_(CASN_desc *d) {
             val=d->entry[i].exp1;
         }
         //std::cout << std::endl << "CASN pack: " << *d->entry[i].addr << " " <<  packCASN(d);
-        CAS1(*(d->entry[i].addr), *packCASN(d), val);
+        CAS1(*d->entry[i].addr, (word_t) packCASN(d), val);
     }
     return succ;
 }
