@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <omp.h>
-using word_t = int;
+using word_t = long int;
 word_t SUCCEEDED= 2;
 word_t UNDECIDED= 1;
 word_t FAILED= 0;
@@ -50,15 +50,15 @@ struct CASN_desc {
     }
 };// __attribute__ ((alligned(64)));
 
-word_t *pack(RDCSS_desc *p1) {
+word_t* pack(RDCSS_desc *p1) {
     int tag=1;
     const uintptr_t MASK = ~0x03ULL;
-    word_t *p2=(word_t *)(((uintptr_t)p1 & MASK) | tag);
+    word_t *p2=(word_t*)(((uintptr_t)p1 & MASK) | tag);
     //std::cout << "set " << p1 << " " << p2 << std::endl;
     return p2;
 }
 
-word_t *packCASN(CASN_desc *p1) {
+word_t* packCASN(CASN_desc *p1) {
     int tag=2;
     const uintptr_t MASK = ~0x03ULL;
     word_t *p2=(word_t *)(((uintptr_t)p1 & MASK) | tag);
@@ -67,28 +67,28 @@ word_t *packCASN(CASN_desc *p1) {
 }
 
 RDCSS_desc *unpack(word_t *p1) {
+    std::cout << "unpackRDCSS";
     const uintptr_t MASK = ~0x03ULL;
     intptr_t p2 = (uintptr_t)p1 & MASK;
-    std::cout << "unpack" << p1 << " " << p2 << std::endl;
+    //std::cout << "unpack" << (uintptr_t)p1 << " " << (uintptr_t)p2 << std::endl;
     return (RDCSS_desc*)p2;
-
 }
 
 CASN_desc *unpackCASN(word_t *p1) {
     const uintptr_t MASK = ~0x03ULL;
     intptr_t p2 = (uintptr_t)p1 & MASK;
-    std::cout << "unpackCASN" << p1 << " " << p2 << std::endl;
+    //std::cout << "unpackCASN" << (uintptr_t *)p1 << " " << (uintptr_t *)p2 << std::endl;
     return (CASN_desc*)p2;
 }
 
-word_t CAS1(std::atomic<word_t> &a, word_t o, word_t n) {
-    word_t old=a; 
+word_t CAS1(std::atomic<word_t> &a, word_t expected, word_t n) {
+    word_t old=(word_t) &a; 
     //if (old==o) *a=n;   
-    a.compare_exchange_weak(o, n);
+    a.compare_exchange_weak(expected, n);
 
-    //std::cout << "CAS1 old:" << old << " exp:" << o << " new:" << n <<  std::endl;
+    //std::cout << "CAS1 old:" << old << " exp:" << expected << " new:" << n <<  std::endl;
 
-    /*if(a.compare_exchange_weak(o, n)) {
+    /*if(a.compare_exchange_weak(expected, n)) {
         std::cout << "CAS1 succ " << std::endl;
     } else {
         std::cout << "CAS1 fail " << std::endl;
@@ -96,33 +96,51 @@ word_t CAS1(std::atomic<word_t> &a, word_t o, word_t n) {
     return old;
 }
 
-void RDCSSHelp(RDCSS_desc *d) {
-    if (*d->addr1 == d-> exp1) {
-        CAS1(* d->addr2, *pack(d), d->new2);
+word_t CAS1_(std::atomic<word_t> &a, word_t expected, word_t n) {
+    word_t old=(word_t) &a; 
+    //if (old==o) *a=n;   
+    a.compare_exchange_weak(expected, n);
+
+    std::cout << "CAS1 old:" << old << " exp:" << &expected << " new:" << n <<  std::endl;
+
+    /*if(a.compare_exchange_weak(expected, n)) {
+        std::cout << "CAS1 succ " << std::endl;
     } else {
-        CAS1(* d->addr2, *pack(d), d->exp2);
+        std::cout << "CAS1 fail " << std::endl;
+    }*/
+    return old;
+}
+
+void Complete(RDCSS_desc *d) {
+    //std::cout << "Complete";
+    if (*d->addr1 == d-> exp1) {
+        CAS1(*d->addr2, *pack(d), d->new2);
+    } else {
+        CAS1(*d->addr2, *pack(d), d->exp2);
     }
 }
 
-bool isRDCSS(void *p1) {
+bool isRDCSS(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
+    //std::cout << tag;
     return (tag==1);
 }
 
-bool isCASN(void *p1) {
+bool isCASN(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
-    std::cout << tag;
+    //std::cout << tag;
     return (tag==2);
 }
 
+
 word_t RDCSSRead(std::atomic<word_t> *addr) {
-    word_t *v;
+    word_t v;
     while(true) {
-        *v=*addr;
-        if (isRDCSS(v)) RDCSSHelp(unpack(v));
+        v=(word_t) *addr;
+        if (isRDCSS((word_t*) v)) Complete(unpack((word_t*)v));
         else break;
     }
-    return *v;
+    return v;
 }
 
 
@@ -131,18 +149,18 @@ word_t RDCSS(std::atomic<word_t> *addr1, std::atomic<word_t> *addr2, word_t exp1
     word_t val2;
     while(true) {
         val2=CAS1(*d->addr2, d->exp2, *pack(d));
-        if (isRDCSS(&val2)) {
-            std::cout << std::endl << "found RDCSS Descriptor" << std::endl;
-            RDCSSHelp(unpack(&val2));
+        //std::cout << "isRDCSS? " << val2 << std::endl;
+        if (isRDCSS((word_t*) val2)) {
+            //std::cout << std::endl << "found RDCSS Descriptor" << val2 << std::endl;
+            Complete(unpack((word_t*) val2));
         }
         else break;
     }
     if (val2==d->exp2) {
-        RDCSSHelp(d);
+        Complete(d);
     }
     return val2;    
 } 
-
   
 
 bool CASN_(CASN_desc *d) {
@@ -154,11 +172,11 @@ bool CASN_(CASN_desc *d) {
             word_t val2=RDCSS(&d->status, d->entry[i].addr, UNDECIDED, d->entry[i].exp1, *packCASN(d));
             
             if (val2 != d->entry[i].exp1) {
-                std::cout << std::endl << " ! ";
-                if (isCASN(&val2)) {
+                //std::cout << std::endl << " ! ";
+                if (isCASN((word_t *) val2)) {
                     std::cout << std::endl << "found CASN Descriptor" << std::endl;
-                    if(unpackCASN(&val2)!=d) {
-                        CASN_(unpackCASN(&val2));
+                    if(unpackCASN((word_t*)val2)!=d) {
+                        CASN_(unpackCASN((word_t*)val2));
                         --i;
                         continue;
                     } else {
@@ -179,8 +197,8 @@ bool CASN_(CASN_desc *d) {
         } else {
             val=d->entry[i].exp1;
         }
-        std::cout << "CASN " << packCASN(d);
-        CAS1(*d->entry[i].addr, *packCASN(d), val);
+        //std::cout << std::endl << "CASN pack: " << *d->entry[i].addr << " " <<  packCASN(d);
+        CAS1(*(d->entry[i].addr), *packCASN(d), val);
     }
     return succ;
 }
@@ -188,8 +206,20 @@ bool CASN_(CASN_desc *d) {
 bool CASN(std::vector<CASN_entry> entries) {
     sort(entries.begin(), entries.end(), [](const CASN_entry &left, const CASN_entry &right)
         { return left.addr < right.addr; });
+
     CASN_desc *d = new CASN_desc(UNDECIDED, entries);
+    
     return CASN_(d);
 
 }    
 
+word_t CASNRead(std::atomic<word_t> *addr) {
+    word_t v;
+    do {
+        v=RDCSSRead(addr);
+        if (isCASN((word_t*) v)) CASN_(unpackCASN((word_t*) v));
+    } while(isCASN((word_t *) v));
+    return v;
+}
+
+/**/
