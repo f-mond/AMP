@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <omp.h>
+#include <climits>
 using word_t = long int;
 word_t SUCCEEDED= 2;
 word_t UNDECIDED= 1;
@@ -120,13 +121,13 @@ void Complete(RDCSS_desc *d) {
 bool isRDCSS(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
     //std::cout << p1;
-    return (tag==1);
+    return (tag==1 && (word_t)p1 > INT_MAX);
 }
 
 bool isCASN(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
-    //std::cout << tag;
-    return (tag==2);
+    //std::cout << (word_t)p1 << " " << tag;
+    return (tag==2 && (word_t)p1 > INT_MAX);
 }
 
 
@@ -168,19 +169,19 @@ bool CASN_(CASN_desc *d) {
         for (int i=0; (i< d->n) && (stat==SUCCEEDED); i++) {
             
             word_t val2=RDCSS(&d->status, d->entry[i].addr, UNDECIDED, d->entry[i].exp1, (word_t) packCASN(d));
-            
             if (val2 != d->entry[i].exp1) {
                 //std::cout << std::endl << " ! ";
                 if (isCASN((word_t*)val2)) {
-                    //std::cout << std::endl << "found CASN Descriptor" << std::endl;
+                    std::cout << std::endl << "found CASN Descriptor" << std::endl;
                     if(unpackCASN((word_t*)val2)!=d) {
                         CASN_(unpackCASN((word_t*)val2));
                         --i;
                         continue;
-                    } else {
-                        stat=FAILED;
-                        break;
-                    }
+                    } 
+                }
+                else {
+                	stat=FAILED;
+                    break;
                 }
             }
         }
