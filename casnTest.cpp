@@ -8,11 +8,11 @@
 #include "casn2.cpp" 
 
 int main() {
-    std::atomic<word_t> ato{4},ato2{4*3},ato3{3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3};
-	CASN_entry entry1{&ato, 4, 6}, entry2{&ato2,4*3,4*6}, entry3{&ato3,4*3,4*6}, entry4{&ato4,4*3,4*6}, entry5{&ato5,4*3,4*6}, entry6{&ato6,4*3,4*6}, entry7{&ato7,4*3,4*4}, entry8{&ato8,4*3,4*3};
-	CASN_entry entry2_0{&ato, 6, 4}, entry2_2{&ato2, 4*6,4*3}, entry2_3{&ato3, 4*6,3}, entry2_4{&ato4, 4*6,4*3}, entry2_5{&ato5, 4*6,4*3}, entry2_6{&ato6, 4*6,4*3}, entry2_7{&ato7, 4*4,4*3}, entry2_8{&ato8, 4*3,4*3};
+    std::atomic<word_t> ato{4*4},ato2{4*3},ato3{4*3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3};
+	CASN_entry entry1{&ato, 4*4, 4*6}, entry2{&ato2, 4*3, 4*6}, entry3{&ato3,4*3,4*6}, entry4{&ato4,4*3,4*6}, entry5{&ato5,4*3,4*6}, entry6{&ato6,4*3,4*6}, entry7{&ato7,4*3,4*4}, entry8{&ato8,4*3,4*3};
+	CASN_entry entry2_0{&ato, 4*6, 4*4}, entry2_2{&ato2, 4*6,4*3}, entry2_3{&ato3, 4*6,4*3}, entry2_4{&ato4, 4*6,4*3}, entry2_5{&ato5, 4*6,4*3}, entry2_6{&ato6, 4*6,4*3}, entry2_7{&ato7, 4*4,4*3}, entry2_8{&ato8, 4*3,4*3};
     
-    CASN_entry entry_thread1{&ato3,3,4*6}, entry_thread2{&ato3,3,4*3};
+    CASN_entry entry_thread1{&ato3,4*3,4*6}, entry_thread2{&ato3, 4*6, 4*3};
     std::vector<int> casn_runtime;
     std::vector<int> cas_runtime;
     std::vector<int> casn_throughput;
