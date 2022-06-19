@@ -10,9 +10,9 @@
 #include <fstream>
 
 int main() {
-    std::atomic<word_t> ato{4},ato2{4*3},ato3{3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3}, fail_a{3}, succ9_a{3};
-	CASN_entry entry1{&ato, 4, 6}, entry2{&ato2,4*3,4*6}, entry3{&ato3,4*3,4*6}, entry4{&ato4,4*3,4*6}, entry5{&ato5,4*3,4*6}, entry6{&ato6,4*3,4*6}, entry7{&ato7,4*3,4*4}, entry8{&ato8,4*3,4*3};
-	CASN_entry entry2_0{&ato, 6, 4}, entry2_2{&ato2, 4*6,4*3}, entry2_3{&ato3, 4*6,3*4}, entry2_4{&ato4, 4*6,4*3}, entry2_5{&ato5, 4*6,4*3}, entry2_6{&ato6, 4*6,4*3}, entry2_7{&ato7, 4*4,4*3}, entry2_8{&ato8, 4*3,4*3};
+    std::atomic<word_t> ato{4*4},ato2{4*3},ato3{3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3}, fail_a{2*4}, succ9_a{3*4};
+	CASN_entry entry1{&ato, 4*4, 6*4}, entry2{&ato2,4*3,4*6}, entry3{&ato3,4*3,4*6}, entry4{&ato4,4*3,4*6}, entry5{&ato5,4*3,4*6}, entry6{&ato6,4*3,4*6}, entry7{&ato7,4*3,4*4}, entry8{&ato8,4*3,4*3};
+	CASN_entry entry2_0{&ato, 6*4, 4*4}, entry2_2{&ato2, 4*6,4*3}, entry2_3{&ato3, 4*6,3*4}, entry2_4{&ato4, 4*6,4*3}, entry2_5{&ato5, 4*6,4*3}, entry2_6{&ato6, 4*6,4*3}, entry2_7{&ato7, 4*4,4*3}, entry2_8{&ato8, 4*3,4*3};
     
     CASN_entry entry_thread1{&ato3,3,4*6}, entry_thread2{&ato3,3,4*6};
     std::vector<int> casn_runtime;
@@ -172,14 +172,16 @@ int main() {
 		
 		
 		// starting failure timing runs
-		std::atomic<word_t> succ0_a{3}, succ1_a{3}, succ2_a{3}, succ3_a{3}, succ4_a{3}, succ5_a{3}, succ6_a{3}, succ7_a{3}, succ8_a{3};
-		CASN_entry succ0{&succ0_a,3,4}, succ1{&succ1_a,3,4}, succ2{&succ2_a,3,4}, succ3{&succ3_a,3,4}, succ4{&succ4_a,3,4}, succ5{&succ5_a,3,4}, succ6{&succ6_a,3,4}, succ7{&succ7_a,3,4}, succ8{&succ8_a,3,4}, fail{&fail_a,4,3};
+		std::vector<int> timings_first(1000,0), timings_last(1000,0);
+		
+		std::atomic<word_t> succ0_a{3*4}, succ1_a{3*4}, succ2_a{3*4}, succ3_a{3*4}, succ4_a{3*4}, succ5_a{3*4}, succ6_a{3*4}, succ7_a{3*4}, succ8_a{3*4};
+		CASN_entry succ0{&succ0_a,3*4,4*4}, succ1{&succ1_a,3*4,4*4}, succ2{&succ2_a,3*4,4*4}, succ3{&succ3_a,3*4,4*4}, succ4{&succ4_a,3*4,4*4}, succ5{&succ5_a,3*4,4*4}, succ6{&succ6_a,3*4,4*4}, succ7{&succ7_a,3*4,4*4}, succ8{&succ8_a,3*4,4*4}, fail{&fail_a,4*4,3*4};
 		std::vector<CASN_entry> fail_first, fail_last;
-		std::vector<int> timings_first, timings_last;
+		
 		fail_first.insert(fail_first.end(), {fail, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
 		fail_last.insert(fail_last.end(), {succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8, fail});
 		
-		
+		/*
 		for(int i=0;i<1000;i++){
 		auto start = std::chrono::high_resolution_clock::now();
 		ran = CASN(fail_first);
@@ -190,7 +192,7 @@ int main() {
 		timings_first.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count());
 		if(ran!=0) std::cout << "failure" << std::endl;
 		//std::cout << "fail first resulted in " << (ran? ("success ") : ("failure ")) << "with runtime in ns: " << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << std::endl;
-			
+		std::cout << "fail last" << std::endl;
 		start = std::chrono::high_resolution_clock::now();
 		ran = CASN(fail_last);
 		stop = std::chrono::high_resolution_clock::now();
@@ -203,6 +205,7 @@ int main() {
 		}
 		std::sort(timings_first.begin(), timings_first.end());
 		std::sort(timings_last.begin(), timings_last.end());
+		*/
 		//timings_global[id] = timings_first[499];
 		//timings_global[id+threadcount] = timings_last[499];
 		
@@ -211,21 +214,21 @@ int main() {
 		//starting successful runs
 		
 		
-		CASN_entry shared_0{&succ9_a,3,3}, succ0_b{&succ0_a,4,3}, succ1_b{&succ1_a,4,3}, succ2_b{&succ2_a,4,3}, succ3_b{&succ3_a,4,3}, succ4_b{&succ4_a,4,3}, succ5_b{&succ5_a,4,3}, succ6_b{&succ6_a,4,3}, succ7_b{&succ7_a,4,3}, succ8_b{&succ8_a,4,3}, succ9{&succ9_a,3,3}, succ9_b{&succ9_a, 3,3};
-		ato = 3;
-		ato2 = 3;
-		ato3 = 3;
-		ato4 = 3;
-		succ0_a = 3;
-		succ1_a = 3;
-		succ2_a = 3;
-		succ3_a = 3;
-		succ4_a = 3;
-		succ5_a = 3;
-		succ6_a = 3;
-		succ7_a = 3;
-		succ8_a = 3;
-		succ9_a = 3;
+		CASN_entry shared_0{&succ9_a,3*4,3*4}, succ0_b{&succ0_a,4*4,3*4}, succ1_b{&succ1_a,4*4,3*4}, succ2_b{&succ2_a,4*4,3*4}, succ3_b{&succ3_a,4*4,3*4}, succ4_b{&succ4_a,4*4,3*4}, succ5_b{&succ5_a,4*4,3*4}, succ6_b{&succ6_a,4*4,3*4}, succ7_b{&succ7_a,4*4,3*4}, succ8_b{&succ8_a,4*4,3*4}, succ9{&succ9_a,3*4,3*4}, succ9_b{&succ9_a, 3*4,3*4};
+		ato = 3*4;
+		ato2 = 3*4;
+		ato3 = 3*4;
+		ato4 = 3*4;
+		succ0_a = 3*4;
+		succ1_a = 3*4;
+		succ2_a = 3*4;
+		succ3_a = 3*4;
+		succ4_a = 3*4;
+		succ5_a = 3*4;
+		succ6_a = 3*4;
+		succ7_a = 3*4;
+		succ8_a = 3*4;
+		succ9_a = 3*4;
 		
 
 		
@@ -233,7 +236,7 @@ int main() {
 		succ_entries.insert(succ_entries.end(), {succ9, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
 		succ_entries2.insert(succ_entries2.end(), {succ9_b, succ0_b, succ1_b, succ2_b, succ3_b, succ4_b, succ5_b, succ6_b, succ7_b, succ8_b});
 		
-		for(int i=0;i<10;i++){
+		for(int i=0;i<100;i++){
 				auto start = std::chrono::high_resolution_clock::now();
 				bool ran = CASN(succ_entries);
 				bool ran2 = CASN(succ_entries2);
@@ -255,23 +258,23 @@ int main() {
 		
 		
 		//throughput testing
-		succ0_a = 3;
-		succ1_a = 3;
-		succ2_a = 3;
-		succ3_a = 3;
-		succ4_a = 3;
-		succ5_a = 3;
-		succ6_a = 3;
-		succ7_a = 3;
-		succ8_a = 3;
-		succ9_a = 3;
+		succ0_a = 3*4;
+		succ1_a = 3*4;
+		succ2_a = 3*4;
+		succ3_a = 3*4;
+		succ4_a = 3*4;
+		succ5_a = 3*4;
+		succ6_a = 3*4;
+		succ7_a = 3*4;
+		succ8_a = 3*4;
+		succ9_a = 3*4;
 		
 		auto start = std::chrono::high_resolution_clock::now();
 		int output=0;
 		while(std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now() - start).count() < 3000) {
 			bool ran = CASN(succ_entries);
 			bool ran2 = CASN(succ_entries2);
-			if(!ran || !ran2) {std::cout << "failed " << output << " " << id << std::endl;
+			if(!ran || !ran2) {std::cout << "failed throughput testing at iteration " << output << " thread " << id << " values in the descriptor" << std::endl;
 			std::cout << succ0_a << succ1_a << succ2_a << succ3_a << succ4_a << succ5_a << succ6_a << succ7_a << succ8_a << succ9_a << std::endl;
 			break;
 			}
