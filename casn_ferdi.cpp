@@ -7,6 +7,7 @@
 #include <omp.h>
 #include "casn2.cpp" 
 #include <chrono>
+#include <fstream>
 
 int main() {
     std::atomic<word_t> ato{4},ato2{4*3},ato3{3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3}, fail_a{3}, succ9_a{3};
@@ -19,25 +20,13 @@ int main() {
     std::vector<int> casn_throughput;
     std::vector<int> cas_throughput;
 
-
-/*    std::vector<CASN_entry> N_entries;
-    N_entries.push_back(entry1);    
-	std::cout << ato << std::endl;
-	
-	CASN(N_entries);
-	//CASN_desc *d = new CASN_desc(UNDECIDED, N_entries);
-	//std::cout << std::hex << CAS1(*d->entry[0].addr, 6, 3) << std::endl;
-	std::cout << std::endl << ato << std::endl;
-
-
-*/
 	int threadcount = 6;
     omp_set_dynamic(0);
     omp_set_num_threads(threadcount);
     int loops = 10;
     std::vector<int> ran_shared(loops*threadcount,0);
     std::vector<int> ran_shared2(loops*threadcount,0);
-    std::vector<int> timings_global(threadcount*3,0);
+    std::vector<int> timings_global(threadcount*6,0);
   
     #pragma omp parallel
     {
@@ -127,17 +116,16 @@ int main() {
 			ran = CASN(ent);
 			ran_shared[j*threadcount+id] = ran;
 			int i=0;
-			#pragma omp barrier
+
 			bool non_sharing_thread_ran;
 			bool any_thread_ran;
 			for(int k=0;k<threadcount-2;k++){
 			if(ran_shared[j*threadcount+2+k]==1) non_sharing_thread_ran = true;}
 			for(int k=0;k<threadcount;k++){
 			if(ran_shared[j*threadcount+k]==1) any_thread_ran = true;}
-			
+			#pragma omp barrier
 			for(int k=0;k<exp_values.size();k++){
 //			checking if the values were reset in case of fail, or if they got changed in case of success
-			
 			if((ran && *ent[i].addr!=ent[i].new1) || (!ran && *ent[i].addr != exp_values[k] && !any_thread_ran) && incl[k]==1 && (!non_sharing_thread_ran || i>3) && abs(*ent[i].addr)<100) 
 			{
 				if((ran && *ent[i].addr!=ent[i].new1) || (!ran && *ent[i].addr != exp_values[k] && !any_thread_ran) && incl[k]==1 && (!non_sharing_thread_ran || i>3) && abs(*ent[i].addr)<100) std::cout << "check failed thread " << id << " on entry " << i << " should be " << (ran? ent[i].new1 : exp_values[k]) << " but is " << (*ent[i].addr) << " " << any_thread_ran << " " << ran << std::endl;
@@ -176,18 +164,10 @@ int main() {
 			if(j==0) ato3 = 4*3;
 			if(ran) std::cout << " 1" << id;
 			if(ran2) std::cout << " 2" << id;
-			//std::cout << id << " " << ran << " " << ran2 << std::endl;
-/*			if(id==0){
-				std::cout << "current ";
-				for(int i=0;i<old_values.size();i++){std::cout << *ent[i].addr << " ";}
-				std::cout << std::endl << "expected ";
-				for(int i=0;i<old_values.size();i++){std::cout << ent2[i].exp1 << " ";}
-				std::cout << std::endl << "old ";
-				for(int i=0;i<old_values.size();i++){std::cout << old_values[i] << " ";}
-				std::cout << std::endl;
-			}
-*/		}
-		//std::cout << std::endl;
+		}
+		#pragma omp barrier
+		if(id==0) std::cout << std::endl;
+	
 		
 		
 		
@@ -196,26 +176,9 @@ int main() {
 		CASN_entry succ0{&succ0_a,3,4}, succ1{&succ1_a,3,4}, succ2{&succ2_a,3,4}, succ3{&succ3_a,3,4}, succ4{&succ4_a,3,4}, succ5{&succ5_a,3,4}, succ6{&succ6_a,3,4}, succ7{&succ7_a,3,4}, succ8{&succ8_a,3,4}, fail{&fail_a,4,3};
 		std::vector<CASN_entry> fail_first, fail_last;
 		std::vector<int> timings_first, timings_last;
-		fail_first.push_back(fail);
-		fail_first.push_back(succ0);
-		fail_last.push_back(succ0);
-		fail_first.push_back(succ1);
-		fail_last.push_back(succ1);
-		fail_first.push_back(succ2);
-		fail_last.push_back(succ2);
-		fail_first.push_back(succ3);
-		fail_last.push_back(succ3);
-		fail_first.push_back(succ4);
-		fail_last.push_back(succ4);
-		fail_first.push_back(succ5);
-		fail_last.push_back(succ5);
-		fail_first.push_back(succ6);
-		fail_last.push_back(succ6);
-		fail_first.push_back(succ7);
-		fail_last.push_back(succ7);
-		fail_first.push_back(succ8);
-		fail_last.push_back(succ8);
-		fail_last.push_back(fail);
+		fail_first.insert(fail_first.end(), {fail, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
+		fail_last.insert(fail_last.end(), {succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8, fail});
+		
 		
 		for(int i=0;i<1000;i++){
 		auto start = std::chrono::high_resolution_clock::now();
@@ -240,78 +203,119 @@ int main() {
 		}
 		std::sort(timings_first.begin(), timings_first.end());
 		std::sort(timings_last.begin(), timings_last.end());
-		timings_global[id] = timings_first[499];
-		timings_global[id+threadcount] = timings_last[499];
-		if(id==0){
-		int sum;
-		std::for_each(timings_first.begin(), timings_first.end(), [&] (int n) {sum += n;});
-		std::cout << "minimum execution time for fail on first entry in ns: " << timings_first[0] << std::endl;
-		std::cout << "median execution time for fail on first entry in ns: " << timings_first[499] << std::endl;
-		std::cout << "average execution time for fail on first entry in ns: " << sum/timings_first.size() << std::endl;
-		std::cout << "maximum execution time for fail on first entry in ns: " << timings_first[999] << std::endl << std::endl;
-		std::cout << "minimum execution time for fail on last entry in ns: " << timings_last[0] << std::endl;
-		std::cout << "median execution time for fail on last entry in ns: " << timings_last[499] << std::endl;
-		sum = 0;
-		std::for_each(timings_last.begin(), timings_last.end(), [&] (int n) {sum+=n;});
-		std::cout << "average execution time for fail on last entry in ns: " << sum/timings_last.size() << std::endl;
-		std::cout << "maximum execution time for fail on last entry in ns: " << timings_last[999] << std::endl;}
+		//timings_global[id] = timings_first[499];
+		//timings_global[id+threadcount] = timings_last[499];
 		
 		
 		
 		//starting successful runs
 		
-//		std::atomic<word_t> succ0_b{3}, succ1_b{3}, succ2_b{3}, succ3_b{3}, succ4_b{3}, succ5_b{3}, succ6_b{3}, succ7_b{3}, succ8_b{3}, succ9_b{3};
-		CASN_entry succ9{&succ9_a,3,3}, succ0_b{&succ0_a,4,3}, succ1_b{&succ1_a,4,3}, succ2_b{&succ2_a,4,3}, succ3_b{&succ3_a,4,3}, succ4_b{&succ4_a,4,3}, succ5_b{&succ5_a,4,3}, succ6_b{&succ6_a,4,3}, succ7_b{&succ7_a,4,3}, succ8_b{&succ8_a,4,3}, succ9_b{&succ9_a,3,3};
+		
+		CASN_entry shared_0{&succ9_a,3,3}, succ0_b{&succ0_a,4,3}, succ1_b{&succ1_a,4,3}, succ2_b{&succ2_a,4,3}, succ3_b{&succ3_a,4,3}, succ4_b{&succ4_a,4,3}, succ5_b{&succ5_a,4,3}, succ6_b{&succ6_a,4,3}, succ7_b{&succ7_a,4,3}, succ8_b{&succ8_a,4,3}, succ9{&succ9_a,3,3}, succ9_b{&succ9_a, 3,3};
+		ato = 3;
+		ato2 = 3;
+		ato3 = 3;
+		ato4 = 3;
+		succ0_a = 3;
+		succ1_a = 3;
+		succ2_a = 3;
+		succ3_a = 3;
+		succ4_a = 3;
+		succ5_a = 3;
+		succ6_a = 3;
+		succ7_a = 3;
+		succ8_a = 3;
+		succ9_a = 3;
+		
+
 		
 		std::vector<CASN_entry> succ_entries, succ_entries2;
-		succ_entries.push_back(succ0);
-		succ_entries2.push_back(succ0_b);
-		succ_entries.push_back(succ1);
-		succ_entries2.push_back(succ1_b);
-		succ_entries.push_back(succ2);
-		succ_entries2.push_back(succ2_b);
-		succ_entries.push_back(succ3);
-		succ_entries2.push_back(succ3_b);
-		succ_entries.push_back(succ4);
-		succ_entries2.push_back(succ4_b);
-		succ_entries.push_back(succ5);
-		succ_entries2.push_back(succ5_b);
-		succ_entries.push_back(succ6);
-		succ_entries2.push_back(succ6_b);
-		succ_entries.push_back(succ7);
-		succ_entries2.push_back(succ7_b);
-		succ_entries.push_back(succ8);
-		succ_entries2.push_back(succ8_b);
-		succ_entries.push_back(succ9);
-		succ_entries2.push_back(succ9_b);
+		succ_entries.insert(succ_entries.end(), {succ9, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
+		succ_entries2.insert(succ_entries2.end(), {succ9_b, succ0_b, succ1_b, succ2_b, succ3_b, succ4_b, succ5_b, succ6_b, succ7_b, succ8_b});
 		
-		for(int i=0;i<1000;i++){
-			auto start = std::chrono::high_resolution_clock::now();
-			bool ran = CASN(succ_entries);
-			bool ran2 = CASN(succ_entries2);
-			auto stop = std::chrono::high_resolution_clock::now();
-			if(!ran || !ran2) std::cout << "failure to run" << std::endl;
-			timings_first[i] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count()/2;
+		for(int i=0;i<10;i++){
+				auto start = std::chrono::high_resolution_clock::now();
+				bool ran = CASN(succ_entries);
+				bool ran2 = CASN(succ_entries2);
+				auto stop = std::chrono::high_resolution_clock::now();
+				if(!ran || !ran2) std::cout << "failure to run " << ran << " " << ran2 << std::endl;
+				timings_first[i] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count()/2;
 		}
-		CASN(succ_entries);
-		#pragma omp barrier
-		if(succ0_a !=4 || succ1_a !=4 ||succ2_a !=4 ||succ3_a !=4 ||succ4_a !=4 ||succ5_a !=4 ||succ6_a !=4 ||succ7_a !=4 ||succ8_a !=4 ||succ9_a !=3) {std::cout << "failure to get right result " << id << std::endl;
-		std::cout << succ0_a << " " << succ1_a << " " << succ2_a << " " << succ3_a << " " << succ4_a << " " << succ5_a << " " << succ6_a << " " << succ7_a << " " << succ8_a << " " << succ9_a << " " << std::endl;}
 		std::sort(timings_first.begin(), timings_first.end());
 		timings_global[id+2*threadcount] = timings_first[499];
-		if(id==0){
+		
 		std::sort(timings_first.begin(), timings_first.end());
 		std::sort(timings_last.begin(), timings_last.end());
 		int sum=0;
 		std::for_each(timings_first.begin(), timings_first.end(), [&] (int n) {sum += n;});
-		std::cout << "minimum execution time for 10 CAS success in ns: " << timings_first[0] << std::endl;
-		std::cout << "median execution time for 10 CAS success in ns: " << timings_first[499] << std::endl;
-		std::cout << "average execution time for 10 CAS success in ns: " << sum/timings_first.size() << std::endl;
-		std::cout << "maximum execution time for 10 CAS success in ns: " << timings_first[999] << std::endl << std::endl;
+		timings_global[id] = timings_first[0];
+		timings_global[id+threadcount] = timings_first[499];
+		timings_global[id+2*threadcount] = sum/timings_first.size();
+		timings_global[id+3*threadcount] = timings_first[999];
+		
+		
+		//throughput testing
+		succ0_a = 3;
+		succ1_a = 3;
+		succ2_a = 3;
+		succ3_a = 3;
+		succ4_a = 3;
+		succ5_a = 3;
+		succ6_a = 3;
+		succ7_a = 3;
+		succ8_a = 3;
+		succ9_a = 3;
+		
+		auto start = std::chrono::high_resolution_clock::now();
+		int output=0;
+		while(std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now() - start).count() < 3000) {
+			bool ran = CASN(succ_entries);
+			bool ran2 = CASN(succ_entries2);
+			if(!ran || !ran2) {std::cout << "failed " << output << " " << id << std::endl;
+			std::cout << succ0_a << succ1_a << succ2_a << succ3_a << succ4_a << succ5_a << succ6_a << succ7_a << succ8_a << succ9_a << std::endl;
+			break;
+			}
+			output++;
 		}
+		timings_global[4*threadcount+id] = output;
+		
+		int a{3}, b{4};
+		output=0;
+		std::atomic<word_t>temp{3};
+		start = std::chrono::high_resolution_clock::now();
+		while(std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now() - start).count() < 3000) {
+			CAS1(temp,a,b);
+			CAS1(temp,b,a);
+			output++;
+		}
+		timings_global[5*threadcount+id] = output/10;
+		
+		
     }
-    //std::cout << ato << std::endl;
-/**/
+    
+    std::cout << "minimum runtimes:" << std::endl;
+	for(int i=0;i<threadcount;i++){
+	std::cout << "thread " << i << " " << timings_global[i] << std::endl;
+	}
+	std::cout << "median runtimes:" << std::endl;
+	for(int i=0;i<threadcount;i++){
+	std::cout << "thread " << i << " " << timings_global[threadcount + i] << std::endl;
+	}
+	std::cout << "average runtimes:" << std::endl;
+	for(int i=0;i<threadcount;i++){
+	std::cout << "thread " << i << " " << timings_global[2*threadcount + i] << std::endl;
+	}
+	std::cout << "maximum runtimes:" << std::endl;
+	for(int i=0;i<threadcount;i++){
+	std::cout << "thread " << i << " " << timings_global[3*threadcount + i] << std::endl;
+	}
+	std::ofstream outputfile;
+	outputfile.open("output.txt");
+	outputfile << "minimum,median,average,maximum,throughput,throughput_base" << std::endl;
+	for(int i=0;i<threadcount;i++){
+	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] << std::endl;
+	}
+	outputfile.close();
 	std::cout << std::endl << "finished execution" << std::endl;
     
     return 0;
