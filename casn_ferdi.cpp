@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "thread " << i << " " << timings_global[3*threadcount + i] << std::endl;
 	}
 	std::ofstream outputfile;
-	outputfile.open("output.txt");
+	outputfile.open("output" + std::to_string(threadcount) +".txt");
 	outputfile << "minimum,median,average,maximum,throughput,throughput_base" << std::endl;
 	for(int i=0;i<threadcount;i++){
 	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] << std::endl;
