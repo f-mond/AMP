@@ -172,7 +172,7 @@ bool CASN_(CASN_desc *d) {
             if (val2 != d->entry[i].exp1) {
                 //std::cout << std::endl << " ! ";
                 if (isCASN((word_t*)val2)) {
-                    std::cout << std::endl << "found CASN Descriptor" << std::endl;
+                    //std::cout << std::endl << "found CASN Descriptor" << std::endl;
                     if(unpackCASN((word_t*)val2)!=d) {
                         CASN_(unpackCASN((word_t*)val2));
                         --i;
