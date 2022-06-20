@@ -1,4 +1,4 @@
-#include<vector>
+#include <vector>
 #include <iostream>
 #include <string>
 #include <atomic>
@@ -9,7 +9,10 @@
 #include <chrono>
 #include <fstream>
 
-int main() {
+int main(int argc, char* argv[]) {
+	int threadcount = 6;
+	if (argc>1) threadcount = atoi(argv[1]);
+
     std::atomic<word_t> ato{4*4},ato2{4*3},ato3{3}, ato4{4*3}, ato5{4*3}, ato6{4*3}, ato7{4*3}, ato8{4*3}, fail_a{2*4}, succ9_a{3*4};
 	CASN_entry entry1{&ato, 4*4, 6*4}, entry2{&ato2,4*3,4*6}, entry3{&ato3,4*3,4*6}, entry4{&ato4,4*3,4*6}, entry5{&ato5,4*3,4*6}, entry6{&ato6,4*3,4*6}, entry7{&ato7,4*3,4*4}, entry8{&ato8,4*3,4*3};
 	CASN_entry entry2_0{&ato, 6*4, 4*4}, entry2_2{&ato2, 4*6,4*3}, entry2_3{&ato3, 4*6,3*4}, entry2_4{&ato4, 4*6,4*3}, entry2_5{&ato5, 4*6,4*3}, entry2_6{&ato6, 4*6,4*3}, entry2_7{&ato7, 4*4,4*3}, entry2_8{&ato8, 4*3,4*3};
@@ -20,7 +23,7 @@ int main() {
     std::vector<int> casn_throughput;
     std::vector<int> cas_throughput;
 
-	int threadcount = 6;
+	
     omp_set_dynamic(0);
     omp_set_num_threads(threadcount);
     int loops = 10;
@@ -323,7 +326,7 @@ int main() {
 	std::cout << "thread " << i << " " << timings_global[3*threadcount + i] << std::endl;
 	}
 	std::ofstream outputfile;
-	outputfile.open("output.txt");
+	outputfile.open("output" + std::to_string(threadcount) +".txt");
 	outputfile << "minimum,median,average,maximum,throughput,throughput_base" << std::endl;
 	for(int i=0;i<threadcount;i++){
 	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] << std::endl;
