@@ -181,31 +181,41 @@ int main() {
 		fail_first.insert(fail_first.end(), {fail, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
 		fail_last.insert(fail_last.end(), {succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8, fail});
 		
-		/*
+		
+		succ0_a = 3*4;
+		succ1_a = 3*4;
+		succ2_a = 3*4;
+		succ3_a = 3*4;
+		succ4_a = 3*4;
+		succ5_a = 3*4;
+		succ6_a = 3*4;
+		succ7_a = 3*4;
+		succ8_a = 3*4;
+		fail_a = 3*4;
 		for(int i=0;i<1000;i++){
 		auto start = std::chrono::high_resolution_clock::now();
 		ran = CASN(fail_first);
 		auto stop = std::chrono::high_resolution_clock::now();
 		for(int j=0;j<fail_first.size();j++){
-		if(*fail_first[j].addr!=3) std::cout << "failure" << std::endl;
+		if(*fail_first[j].addr!=3*4) std::cout << "failure first" << std::endl;
 		}
-		timings_first.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count());
+		timings_first[i] = (std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count());
 		if(ran!=0) std::cout << "failure" << std::endl;
 		//std::cout << "fail first resulted in " << (ran? ("success ") : ("failure ")) << "with runtime in ns: " << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << std::endl;
-		std::cout << "fail last" << std::endl;
+
 		start = std::chrono::high_resolution_clock::now();
 		ran = CASN(fail_last);
 		stop = std::chrono::high_resolution_clock::now();
 		for(int j=0;j<fail_last.size();j++){
-		if(*fail_last[j].addr!=3) std::cout << "failure" << std::endl;
+		if(*fail_last[j].addr!=3*4) std::cout << "failure last" << std::endl;
 		}
 		//std::cout << "fail last resulted in " << (ran? ("success ") : ("failure ")) << "with runtime in ns: " << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << std::endl;
-		timings_last.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count());
+		timings_last[i]=(std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count());
 		if(ran!=0) std::cout << "failure" << std::endl;
 		}
 		std::sort(timings_first.begin(), timings_first.end());
 		std::sort(timings_last.begin(), timings_last.end());
-		*/
+		
 		//timings_global[id] = timings_first[499];
 		//timings_global[id+threadcount] = timings_last[499];
 		
@@ -236,7 +246,7 @@ int main() {
 		succ_entries.insert(succ_entries.end(), {succ9, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
 		succ_entries2.insert(succ_entries2.end(), {succ9_b, succ0_b, succ1_b, succ2_b, succ3_b, succ4_b, succ5_b, succ6_b, succ7_b, succ8_b});
 		
-		for(int i=0;i<100;i++){
+		for(int i=0;i<1000;i++){
 				auto start = std::chrono::high_resolution_clock::now();
 				bool ran = CASN(succ_entries);
 				bool ran2 = CASN(succ_entries2);
