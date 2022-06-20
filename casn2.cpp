@@ -34,8 +34,9 @@ struct CASN_entry {
     word_t new1;
     CASN_entry(std::atomic<word_t> *addr, word_t exp1, word_t new1) {
         this->addr=addr;
-        this->exp1=exp1;
-        this->new1=new1;
+        *this->addr=*this->addr<<2;
+        this->exp1=exp1<<2;
+        this->new1=new1<<2;
     }
 };
 
@@ -121,13 +122,13 @@ void Complete(RDCSS_desc *d) {
 bool isRDCSS(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
     //std::cout << p1;
-    return (tag==1 && (word_t)p1 > INT_MAX);
+    return (tag==1 && (word_t)p1);
 }
 
 bool isCASN(word_t *p1) {
     int tag = (uintptr_t)p1 & 0x03;
     //std::cout << (word_t)p1 << " " << tag;
-    return (tag==2 && (word_t)p1 > INT_MAX);
+    return (tag==2 && (word_t)p1);
 }
 
 
