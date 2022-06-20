@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	    std::vector<int> exp_values(10,0);
 	    std::vector<bool> incl(10,0);
 	    std::vector<bool> incl2(10,0);
-        if(id%2==0){
+        //if(id%2==0){
 			ent.push_back(entry1);
 			ent2.push_back(entry2_0);
 			incl[0] = 1;
@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
 			ent2.push_back(entry2_3);
 			incl[2] = 1;
 			incl2[2] = 1;
-	    }
-	    if(id%2==1){
+	    //}
+	    //if(id%2==1){
 			ent.push_back(entry4);
 			ent2.push_back(entry2_4);
 			incl[3] = 1;
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 			ent2.push_back(entry2_6);
 			incl[5] = 1;
 			incl2[5] = 1;
-	    }
+	    //}
 	    ent.push_back(entry7);
 	    ent2.push_back(entry2_7);
 	    incl[6] = 1;
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
         
 		bool ran, ran2;
-
+/*
 		for(int j=0;j<loops;j++){
 		
 			#pragma omp barrier
@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
 			if(ran) std::cout << " 1" << id;
 			if(ran2) std::cout << " 2" << id;
 		}
+		*/
 		#pragma omp barrier
 		if(id==0) std::cout << std::endl;
 	
