@@ -4,10 +4,15 @@ import matplotlib.pyplot as plt
 
 
 timings_64 = pd.read_csv('output64.txt')
+timings_64.replace(0,np.nan,inplace=True)
 timings_32 = pd.read_csv('output32.txt')
+timings_32.replace(0,np.nan,inplace=True)
 timings_16 = pd.read_csv('output16.txt')
+timings_16.replace(0,np.nan,inplace=True)
 timings_8 = pd.read_csv('output8.txt')
+timings_8.replace(0,np.nan,inplace=True)
 timings_4 = pd.read_csv('output4.txt')
+timings_4.replace(0,np.nan,inplace=True)
 timings_6 = pd.read_csv('output6.txt')
 timings_64['median'].plot(label='64')
 timings_32['median'].plot(label='32')

@@ -263,9 +263,9 @@ int main(int argc, char* argv[]) {
 		int sum=0;
 		std::for_each(timings_first.begin(), timings_first.end(), [&] (int n) {sum += n;});
 		timings_global[id] = timings_first[0];
-		timings_global[id+threadcount] = timings_first[499];
+		timings_global[id+threadcount] = timings_first[49];
 		timings_global[id+2*threadcount] = sum/timings_first.size();
-		timings_global[id+3*threadcount] = timings_first[999];
+		timings_global[id+3*threadcount] = timings_first[99];
 		
 		//CAS1 comparison testing
 		word_t a=3;
@@ -310,12 +310,13 @@ int main(int argc, char* argv[]) {
 		std::sort(timings_last.begin(), timings_last.end());
 		sum=0;
 		std::for_each(timings_first.begin(), timings_first.end(), [&] (int n) {sum += n;});	
-		timings_global[id+4*threadcount] = timings_first[499];
+		timings_global[id+4*threadcount] = timings_first[49];
 		timings_global[id+5*threadcount] = sum/timings_first.size();
-		timings_global[id+6*threadcount] = timings_first[999];
+		timings_global[id+6*threadcount] = timings_first[99];
 		
 		#pragma omp barrier
 		//throughput testing
+		/*
 		succ0_a = 3*4;
 		succ1_a = 3*4;
 		succ2_a = 3*4;
@@ -354,9 +355,9 @@ int main(int argc, char* argv[]) {
 		}
 		timings_global[8*threadcount+id] = output/10;
 		
-		
+	*/	
     }
-    /*
+    
     std::cout << "minimum runtimes:" << std::endl;
 	for(int i=0;i<threadcount;i++){
 	std::cout << "thread " << i << " " << timings_global[i] << std::endl;
@@ -372,12 +373,12 @@ int main(int argc, char* argv[]) {
 	std::cout << "maximum runtimes:" << std::endl;
 	for(int i=0;i<threadcount;i++){
 	std::cout << "thread " << i << " " << timings_global[3*threadcount + i] << std::endl;
-	}*/
+	}
 	std::ofstream outputfile;
 	outputfile.open("output" + std::to_string(threadcount) +".txt");
-	outputfile << "minimum,median,average,maximum,CAS1med,CAS1avg,CAS1max,throughput,throughput_base" << std::endl;
+	outputfile << "minimum,median,average,maximum,CAS1med,CAS1avg,CAS1max" << std::endl;
 	for(int i=0;i<threadcount;i++){
-	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] <<"," << timings_global[6*threadcount +i] << "," << timings_global[7*threadcount +i] << "," << timings_global[8*threadcount +i] << std::endl;
+	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] <<"," << timings_global[6*threadcount +i] << std::endl;
 	}
 	outputfile.close();
 	std::cout << std::endl << "finished execution" << std::endl;
