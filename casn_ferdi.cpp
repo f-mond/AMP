@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     int loops = 10;
     std::vector<int> ran_shared(loops*threadcount,0);
     std::vector<int> ran_shared2(loops*threadcount,0);
-    std::vector<int> timings_global(threadcount*6,0);
+    std::vector<int> timings_global(threadcount*8,0);
   
     #pragma omp parallel
     {
@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
 			incl2[1] = 1;
 
 			ent.push_back(entry3);
-			//ent.push_back(entry_thread2);
 			ent2.push_back(entry2_3);
 			incl[2] = 1;
 			incl2[2] = 1;
@@ -73,7 +72,6 @@ int main(int argc, char* argv[]) {
 			incl2[4] = 1;
 			
 			ent.push_back(entry6);
-			//ent.push_back(entry_thread1);
 			ent2.push_back(entry2_6);
 			incl[5] = 1;
 			incl2[5] = 1;
@@ -115,7 +113,7 @@ int main(int argc, char* argv[]) {
 			exp_values[8]=*entry9.addr;
 			exp_values[9]=*entry10.addr;
 			
-			
+			#pragma omp barrier
 			ran = CASN(ent);
 			ran_shared[j*threadcount+id] = ran;
 			int i=0;
@@ -136,7 +134,7 @@ int main(int argc, char* argv[]) {
 			if(incl[k]==1)i++;
 			}
 			
-			#pragma omp barrier
+
 			exp_values[0]=*entry1.addr;
 			exp_values[1]=*entry2.addr;
 			exp_values[2]=*entry3.addr;
@@ -147,7 +145,8 @@ int main(int argc, char* argv[]) {
 			exp_values[7]=*entry8.addr;
 			exp_values[8]=*entry9.addr;
 			exp_values[9]=*entry10.addr;
-
+			#pragma omp barrier
+			
 			ran2 = CASN(ent2);
 			#pragma omp barrier
 			ran_shared2[threadcount*j+id]=ran2;
@@ -254,11 +253,9 @@ int main(int argc, char* argv[]) {
 				bool ran = CASN(succ_entries);
 				bool ran2 = CASN(succ_entries2);
 				auto stop = std::chrono::high_resolution_clock::now();
-				if(!ran || !ran2) std::cout << "failure to run " << ran << " " << ran2 << std::endl;
+				//if(!ran || !ran2) std::cout << "failure to run " << ran << " " << ran2 << std::endl;
 				timings_first[i] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count()/2;
 		}
-		std::sort(timings_first.begin(), timings_first.end());
-		timings_global[id+2*threadcount] = timings_first[499];
 		
 		std::sort(timings_first.begin(), timings_first.end());
 		std::sort(timings_last.begin(), timings_last.end());
@@ -268,6 +265,53 @@ int main(int argc, char* argv[]) {
 		timings_global[id+threadcount] = timings_first[499];
 		timings_global[id+2*threadcount] = sum/timings_first.size();
 		timings_global[id+3*threadcount] = timings_first[999];
+		
+		//CAS1 comparison testing
+		word_t a=3;
+		word_t b=5;
+		ato = 3;
+		succ0_a = 3;
+		succ1_a = 3;
+		succ2_a = 3;
+		succ3_a = 3;
+		succ4_a = 3;
+		succ5_a = 3;
+		succ6_a = 3;
+		succ7_a = 3;
+		succ8_a = 3;
+		
+		for(int i=0;i<1000;i++){
+			auto start = std::chrono::high_resolution_clock::now();
+			CAS1(succ0_a,a,b);
+			CAS1(succ0_a,b,a);
+			CAS1(succ1_a,a,b);
+			CAS1(succ1_a,b,a);
+			CAS1(succ2_a,a,b);
+			CAS1(succ2_a,b,a);
+			CAS1(succ3_a,a,b);
+			CAS1(succ3_a,b,a);
+			CAS1(succ4_a,a,b);
+			CAS1(succ4_a,b,a);
+			CAS1(succ5_a,a,b);
+			CAS1(succ5_a,b,a);
+			CAS1(succ6_a,a,b);
+			CAS1(succ6_a,b,a);
+			CAS1(succ7_a,a,b);
+			CAS1(succ7_a,b,a);
+			CAS1(succ8_a,a,b);
+			CAS1(succ8_a,b,a);
+			CAS1(ato,a,a);
+			CAS1(ato,a,a);
+			auto stop = std::chrono::high_resolution_clock::now();
+			timings_first[i] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count()/2;
+		}
+		std::sort(timings_first.begin(), timings_first.end());
+		std::sort(timings_last.begin(), timings_last.end());
+		sum=0;
+		std::for_each(timings_first.begin(), timings_first.end(), [&] (int n) {sum += n;});	
+		timings_global[id+4*threadcount] = timings_first[499];
+		timings_global[id+5*threadcount] = sum/timings_first.size();
+		timings_global[id+6*threadcount] = timings_first[999];
 		
 		
 		//throughput testing
@@ -293,9 +337,10 @@ int main(int argc, char* argv[]) {
 			}
 			output++;
 		}
-		timings_global[4*threadcount+id] = output;
+		timings_global[7*threadcount+id] = output;
 		
-		int a{3}, b{4};
+		a=3;
+		b=4;
 		output=0;
 		std::atomic<word_t>temp{3};
 		start = std::chrono::high_resolution_clock::now();
@@ -304,7 +349,7 @@ int main(int argc, char* argv[]) {
 			CAS1(temp,b,a);
 			output++;
 		}
-		timings_global[5*threadcount+id] = output/10;
+		timings_global[8*threadcount+id] = output/10;
 		
 		
     }
@@ -327,9 +372,9 @@ int main(int argc, char* argv[]) {
 	}
 	std::ofstream outputfile;
 	outputfile.open("output" + std::to_string(threadcount) +".txt");
-	outputfile << "minimum,median,average,maximum,throughput,throughput_base" << std::endl;
+	outputfile << "minimum,median,average,maximum,CAS1med,CAS1avg,CAS1max,throughput,throughput_base" << std::endl;
 	for(int i=0;i<threadcount;i++){
-	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] << std::endl;
+	outputfile << timings_global[i] << "," << timings_global[threadcount + i] << "," << timings_global[2*threadcount +i] << "," << timings_global[3*threadcount +i] << "," << timings_global[4*threadcount +i] << "," << timings_global[5*threadcount +i] <<"," << timings_global[6*threadcount +i] << "," << timings_global[7*threadcount +i] << "," << timings_global[8*threadcount +i] << std::endl;
 	}
 	outputfile.close();
 	std::cout << std::endl << "finished execution" << std::endl;
