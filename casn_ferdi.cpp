@@ -174,12 +174,12 @@ int main(int argc, char* argv[]) {
 		
 		
 		// starting failure timing runs
-		std::vector<int> timings_first(1000,0), timings_last(1000,0);
+		std::vector<int> timings_first(100,0), timings_last(100,0);
 		
 		std::atomic<word_t> succ0_a{3*4}, succ1_a{3*4}, succ2_a{3*4}, succ3_a{3*4}, succ4_a{3*4}, succ5_a{3*4}, succ6_a{3*4}, succ7_a{3*4}, succ8_a{3*4};
 		CASN_entry succ0{&succ0_a,3*4,4*4}, succ1{&succ1_a,3*4,4*4}, succ2{&succ2_a,3*4,4*4}, succ3{&succ3_a,3*4,4*4}, succ4{&succ4_a,3*4,4*4}, succ5{&succ5_a,3*4,4*4}, succ6{&succ6_a,3*4,4*4}, succ7{&succ7_a,3*4,4*4}, succ8{&succ8_a,3*4,4*4}, fail{&fail_a,4*4,3*4};
 		std::vector<CASN_entry> fail_first, fail_last;
-		
+		/*
 		fail_first.insert(fail_first.end(), {fail, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
 		fail_last.insert(fail_last.end(), {succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8, fail});
 		
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
 		//timings_global[id+threadcount] = timings_last[499];
 		
 		
-		
+		*/
 		//starting successful runs
 		
 		
@@ -248,12 +248,12 @@ int main(int argc, char* argv[]) {
 		succ_entries.insert(succ_entries.end(), {succ9, succ0, succ1, succ2, succ3, succ4, succ5, succ6, succ7, succ8});
 		succ_entries2.insert(succ_entries2.end(), {succ9_b, succ0_b, succ1_b, succ2_b, succ3_b, succ4_b, succ5_b, succ6_b, succ7_b, succ8_b});
 		
-		for(int i=0;i<1000;i++){
+		for(int i=0;i<100;i++){
 				auto start = std::chrono::high_resolution_clock::now();
 				bool ran = CASN(succ_entries);
 				bool ran2 = CASN(succ_entries2);
 				auto stop = std::chrono::high_resolution_clock::now();
-				if(!ran || !ran2) std::cout << "failure to run " << ran << " " << ran2 << std::endl;
+				if(!ran || !ran2) std::cout << "failure to run " << ran << " " << ran2 << " " << id << std::endl;
 				timings_first[i] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count()/2;
 		}
 		
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 		succ7_a = 3;
 		succ8_a = 3;
 		
-		for(int i=0;i<1000;i++){
+		for(int i=0;i<100;i++){
 			auto start = std::chrono::high_resolution_clock::now();
 			CAS1(succ0_a,a,b);
 			CAS1(succ0_a,b,a);
@@ -334,6 +334,7 @@ int main(int argc, char* argv[]) {
 			bool ran2 = CASN(succ_entries2);
 			if(!ran || !ran2) {std::cout << "failed throughput testing at iteration " << output << " thread " << id << " values in the descriptor" << std::endl;
 			std::cout << succ0_a << succ1_a << succ2_a << succ3_a << succ4_a << succ5_a << succ6_a << succ7_a << succ8_a << succ9_a << std::endl;
+			output=0;
 			break;
 			}
 			output++;
@@ -354,7 +355,7 @@ int main(int argc, char* argv[]) {
 		
 		
     }
-    
+    /*
     std::cout << "minimum runtimes:" << std::endl;
 	for(int i=0;i<threadcount;i++){
 	std::cout << "thread " << i << " " << timings_global[i] << std::endl;
@@ -370,7 +371,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "maximum runtimes:" << std::endl;
 	for(int i=0;i<threadcount;i++){
 	std::cout << "thread " << i << " " << timings_global[3*threadcount + i] << std::endl;
-	}
+	}*/
 	std::ofstream outputfile;
 	outputfile.open("output" + std::to_string(threadcount) +".txt");
 	outputfile << "minimum,median,average,maximum,CAS1med,CAS1avg,CAS1max,throughput,throughput_base" << std::endl;
