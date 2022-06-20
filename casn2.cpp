@@ -34,9 +34,8 @@ struct CASN_entry {
     word_t new1;
     CASN_entry(std::atomic<word_t> *addr, word_t exp1, word_t new1) {
         this->addr=addr;
-        *this->addr=*this->addr<<2;
-        this->exp1=exp1<<2;
-        this->new1=new1<<2;
+        this->exp1=exp1;
+        this->new1=new1;
     }
 };
 
@@ -171,9 +170,8 @@ bool CASN_(CASN_desc *d) {
             
             word_t val2=RDCSS(&d->status, d->entry[i].addr, UNDECIDED, d->entry[i].exp1, (word_t) packCASN(d));
             if (val2 != d->entry[i].exp1) {
-                //std::cout << std::endl << " ! ";
                 if (isCASN((word_t*)val2)) {
-                    //std::cout << std::endl << "found CASN Descriptor" << std::endl;
+                    //found CASN Descriptor
                     if(unpackCASN((word_t*)val2)!=d) {
                         CASN_(unpackCASN((word_t*)val2));
                         --i;

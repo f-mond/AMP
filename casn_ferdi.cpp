@@ -133,6 +133,7 @@ int main(int argc, char* argv[]) {
 			}
 			if(incl[k]==1)i++;
 			}
+			if(any_thread_ran!=true) std::cout << "no thread ran " << id << " " << j << std::endl;
 			
 
 			exp_values[0]=*entry1.addr;
@@ -224,23 +225,23 @@ int main(int argc, char* argv[]) {
 		
 		*/
 		//starting successful runs
-		
+		#pragma omp barrier
 		
 		CASN_entry shared_0{&succ9_a,3*4,3*4}, succ0_b{&succ0_a,4*4,3*4}, succ1_b{&succ1_a,4*4,3*4}, succ2_b{&succ2_a,4*4,3*4}, succ3_b{&succ3_a,4*4,3*4}, succ4_b{&succ4_a,4*4,3*4}, succ5_b{&succ5_a,4*4,3*4}, succ6_b{&succ6_a,4*4,3*4}, succ7_b{&succ7_a,4*4,3*4}, succ8_b{&succ8_a,4*4,3*4}, succ9{&succ9_a,3*4,3*4}, succ9_b{&succ9_a, 3*4,3*4};
-		ato = 3*4*4;
-		ato2 = 3*4*4;
-		ato3 = 3*4*4;
-		ato4 = 3*4*4;
-		succ0_a = 3*4*4;
-		succ1_a = 3*4*4;
-		succ2_a = 3*4*4;
-		succ3_a = 3*4*4;
-		succ4_a = 3*4*4;
-		succ5_a = 3*4*4;
-		succ6_a = 3*4*4;
-		succ7_a = 3*4*4;
-		succ8_a = 3*4*4;
-		succ9_a = 3*4*4;
+		ato = 3*4;
+		ato2 = 3*4;
+		ato3 = 3*4;
+		ato4 = 3*4;
+		succ0_a = 3*4;
+		succ1_a = 3*4;
+		succ2_a = 3*4;
+		succ3_a = 3*4;
+		succ4_a = 3*4;
+		succ5_a = 3*4;
+		succ6_a = 3*4;
+		succ7_a = 3*4;
+		succ8_a = 3*4;
+		succ9_a = 3*4;
 		
 
 		
@@ -313,18 +314,18 @@ int main(int argc, char* argv[]) {
 		timings_global[id+5*threadcount] = sum/timings_first.size();
 		timings_global[id+6*threadcount] = timings_first[999];
 		
-		
+		#pragma omp barrier
 		//throughput testing
-		succ0_a = 3*4*4;
-		succ1_a = 3*4*4;
-		succ2_a = 3*4*4;
-		succ3_a = 3*4*4;
-		succ4_a = 3*4*4;
-		succ5_a = 3*4*4;
-		succ6_a = 3*4*4;
-		succ7_a = 3*4*4;
-		succ8_a = 3*4*4;
-		succ9_a = 3*4*4;
+		succ0_a = 3*4;
+		succ1_a = 3*4;
+		succ2_a = 3*4;
+		succ3_a = 3*4;
+		succ4_a = 3*4;
+		succ5_a = 3*4;
+		succ6_a = 3*4;
+		succ7_a = 3*4;
+		succ8_a = 3*4;
+		succ9_a = 3*4;
 		
 		
 		auto start = std::chrono::high_resolution_clock::now();
